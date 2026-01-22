@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Shared Wall – Upload</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; }
+  label { display: block; margin-top: 15px; font-weight: bold; }
+  input, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+  button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<h2>Contribute to the Shared Wall</h2>
+
+<p>Upload an image or submit a link. Your name is required.</p>
+
+<label>Your Name (required)</label>
+<input id="author" type="text" required>
+
+<label>Upload Image (optional)</label>
+<input id="imageFile" type="file" accept="image/*">
+
+<label>Or Submit a Link (optional)</label>
+<input id="linkUrl" type="url" placeholder="https://example.com">
+
+<label>Caption (optional)</label>
+<input id="caption" type="text">
+
+<button onclick="submitEntry()">Submit</button>
+
+<p id="status"></p>
+
+<script>
+// ---------------------------
+// CONFIGURATION
+// ---------------------------
+const repoOwner = "jfamme";
+const repoName = "Workrooms-shared-wall";
+const branch = "main";
+
+// INSERT YOUR TOKEN HERE (fine-grained PAT with repo write access)
+const token = "YOUR_GITHUB_TOKEN_HERE";
+
+// ---------------------------
+// HELPER: GitHub API request
+// ---------------------------
+async function githubRequest(path, method, body) {
+  return fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/${path}`, {
+    method,
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(r => r.json());
+}
+
+// ---------------------------
+// MAIN SUBMIT FUNCTION
+// ---------------------------
+async function submitEntry() {
+  const author = document.getElementById("author").value.trim();
+  const caption = document.getElementById("caption").value.trim();
+  const linkUrl = document.getElementById("linkUrl").value.trim();
+  const fileInput = document.getElementById("imageFile");
+  const status = document.getElementById("status");
+
+  if (!author) {
+    status.textContent = "Name is required.";
+    return;
+  }
+
+  if (!fileInput.files.length && !linkUrl) {
+    status.textContent = "Please upload an image or enter a link.";
+    return;
+  }
+
+  status.textContent = "Submitting...";
+
+  // STEP 1: Load existing state.json
+  const stateRes = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/state.json`);
+  const state = await stateRes.json();
+
+  let newEntry = {
+    author,
+    caption,
+    timestamp: Date.now()
+  };
+
+  // STEP 2: If image upload
+  if (fileInput.files.length) {
+    const file = fileInput.files[0];
+    const fileName = `${Date.now()}_${file.name}`;
+    const uploadPath = `uploads/${fileName}`;
+
+    // Convert file to Base64
+    const base64 = await fileToBase64(file);
+
+    // Upload to GitHub
+    await githubRequest(`contents/${uploadPath}`, "PUT", {
+      message: `Upload ${fileName}`,
+      content: base64.split(",")[1]
+    });
+
+    newEntry.type = "image";
+    newEntry.url = `https://${repoOwner}.github.io/${repoName}/uploads/${fileName}`;
+  }
+
+  // STEP 3: If link submission
+  if (linkUrl) {
+    newEntry.type = "link";
+    newEntry.url = linkUrl;
+  }
+
+  // STEP 4: Append entry to state.json
+  state.entries.push(newEntry);
+
+  // STEP 5: Commit updated state.json
+  const stateFileRes = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/state.json`);
+  const stateFile = await stateFileRes.json();
+
+  await githubRequest("contents/state.json", "PUT", {
+    message: "Update state.json",
+    content: btoa(JSON.stringify(state, null, 2)),
+    sha: stateFile.sha
+  });
+
+  status.textContent = "Submitted successfully!";
+}
+
+// Convert file to Base64
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+
+</body>
+</html>

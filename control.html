@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Shared Wall – Control Panel</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; }
+  button { padding: 10px 20px; margin: 10px; font-size: 18px; }
+</style>
+</head>
+<body>
+
+<h2>Shared Wall – Moderator Controls</h2>
+
+<button onclick="changePage(-1)">⬅ Back</button>
+<button onclick="changePage(1)">Forward ➡</button>
+<button onclick="resetPage()">Reset</button>
+
+<p id="status"></p>
+
+<script>
+const repoOwner = "jfamme";
+const repoName = "Workrooms-shared-wall";
+const branch = "main";
+const token = "YOUR_GITHUB_TOKEN_HERE";
+
+async function loadState() {
+  const res = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/state.json`);
+  return res.json();
+}
+
+async function saveState(state) {
+  const fileRes = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/state.json`);
+  const file = await fileRes.json();
+
+  return fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/state.json`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: "Update currentPage",
+      content: btoa(JSON.stringify(state, null, 2)),
+      sha: file.sha
+    })
+  });
+}
+
+async function changePage(delta) {
+  const status = document.getElementById("status");
+  status.textContent = "Updating...";
+
+  const state = await loadState();
+  state.currentPage = Math.max(0, state.currentPage + delta);
+
+  await saveState(state);
+  status.textContent = "Updated!";
+}
+
+async function resetPage() {
+  const status = document.getElementById("status");
+  status.textContent = "Resetting...";
+
+  const state = await loadState();
+  state.currentPage = 0;
+
+  await saveState(state);
+  status.textContent = "Reset!";
+}
+</script>
+
+</body>
+</html>
