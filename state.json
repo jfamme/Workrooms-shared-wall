@@ -1,5 +1,5 @@
 {
-  "currentPage": 2,
+  "currentPage": 1,
   "entries": [
     {
       "author": "VR-JoeF",
@@ -21,6 +21,13 @@
       "timestamp": 1769111823939,
       "type": "link",
       "url": "https://www.a-dec.com/visit-a-dec"
+    },
+    {
+      "author": "VR-JoeF",
+      "caption": "",
+      "timestamp": 1769117926899,
+      "type": "image",
+      "url": "https://jfamme.github.io/Workrooms-shared-wall/uploads/1769117926899_Cafe.jpeg"
     }
   ]
 }
