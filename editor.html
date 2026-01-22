@@ -41,7 +41,10 @@ const repoName = "Workrooms-shared-wall";
 const branch = "main";
 
 // INSERT YOUR TOKEN HERE (fine-grained PAT with repo write access)
-const token = "YOUR_GITHUB_TOKEN_HERE";
+let token = "";
+if (!token) {
+  token = prompt("Enter your GitHub token:");
+}
 
 // ---------------------------
 // HELPER: GitHub API request

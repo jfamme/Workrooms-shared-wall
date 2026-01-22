@@ -22,7 +22,11 @@
 const repoOwner = "jfamme";
 const repoName = "Workrooms-shared-wall";
 const branch = "main";
-const token = "YOUR_GITHUB_TOKEN_HERE";
+
+let token = "";
+if (!token) {
+  token = prompt("Enter your GitHub token:");
+}
 
 async function loadState() {
   const res = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/state.json`);
