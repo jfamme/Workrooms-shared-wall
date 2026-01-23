@@ -1,5 +1,5 @@
 {
-  "currentPage": 3,
+  "currentPage": 1,
   "entries": [
     {
       "author": "VR-JoeF",
@@ -28,6 +28,13 @@
       "timestamp": 1769183812537,
       "type": "image",
       "url": "https://jfamme.github.io/Workrooms-shared-wall/uploads/1769183812537_AddModerators.jpg"
+    },
+    {
+      "author": "VR-JoeF",
+      "timestamp": 1769195179288,
+      "type": "video",
+      "url": "https://jfamme.github.io/Workrooms-shared-wall/uploads/1769195179288_aerial-360-degree-view-of-neuschwanstein-castle-in-forestmountains-summer-fogg-SBV-347687150-preview.mp4",
+      "caption": "A .mp4 video file"
     }
   ]
 }
